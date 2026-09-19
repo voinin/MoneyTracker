@@ -63,10 +63,30 @@ class TransferServiceTest extends TestCase
 
     public function testVaildateZeroAmount():void
     {
-       $from = new Account("Основная карта", 2000, "RUB");
+        $from = new Account("Основная карта", 2000, "RUB");
         $to = new Account("Наличные", 5000, "USD");
-        $transfer = new TransferService;
+        $transfer = new TransferService();
         $this->expectException(InvalidArgumentException::class);
         $transfer->transfer($from, $to, 0); 
+    }
+
+    public function testTransferWithSucessWithdrawAndInvalidDeposit():void
+    {
+        $from = $this->createMock(AccountInterface::class);
+        $to = $this->createMock(AccountInterface::class);
+
+        $from 
+            ->expects($this->once())
+            ->method('withdraw')
+            ->willReturn(true);
+
+        $to
+            ->expects($this->once())
+            ->method('deposit')
+            ->willReturn(false);
+        
+        $transfer = new TransferService();
+        $this->expectException(InvalidArgumentException::class);
+        $transfer->transfer($from, $to, 1);
     }
 }
