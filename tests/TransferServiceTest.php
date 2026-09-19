@@ -6,19 +6,34 @@ use InvalidArgumentException;
 use MoneyTracker\Services\TransferService;
 use PHPUnit\Framework\TestCase;
 use MoneyTracker\Account;
+use MoneyTracker\AccountInterface;
 
 class TransferServiceTest extends TestCase
 {
-    public function testTransferIsSuccess():void
-    {
-        $from = new Account("Основная карта", 2000, "RUB");
-        $to = new Account("Наличные", 5000, "RUB");
-        $transfer = new TransferService;
-        $this->assertTrue($transfer->transfer($from, $to, 1000));
-        $this->assertSame(1000.0, $from->getBalance());
-        $this->assertSame(6000.0, $to->getBalance());
-    }
+    public function testTransferIsSuccess(): void
+{
+    $from = $this->createMock(AccountInterface::class);
+    $to   = $this->createMock(AccountInterface::class);
 
+    $from->method('getCurrency')->willReturn("RUB");
+    $from
+        ->expects($this->once())
+        ->method('withdraw')
+        ->with(1000.0)
+        ->willReturn(true);
+
+    $to->method('getCurrency')->willReturn("RUB");
+    $to
+        ->expects($this->once())
+        ->method('deposit')
+        ->with(1000.0)
+        ->willReturn(true);
+
+    $transfer = new TransferService();
+
+    $this->assertTrue($transfer->transfer($from, $to, 1000));
+} 
+        
     public function testTransferWithInsufficientBalance():void
     {
         $from = new Account("Основная карта", 2000, "RUB");
