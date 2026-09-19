@@ -1,0 +1,25 @@
+{
+    "name": "moneytracker/app",
+    "description": "Personal finance tracker",
+    "type": "project",
+    "minimum-stability": "stable",
+    "require": {
+        "symfony/var-dumper": "^8.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "MoneyTracker\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "MoneyTracker\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^13.3"
+    }
+}
