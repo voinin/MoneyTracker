@@ -8,7 +8,7 @@ class TransferService
 {
     public function transfer(AccountInterface $from, AccountInterface $to, float $amount):bool
     {
-        if ($from->getCurrency === $to->getCurrency) {
+        if ($from->getCurrency() === $to->getCurrency()) {
             if ($from->withdraw($amount)) {
                 return $to->deposit($amount);
             } else {
