@@ -52,12 +52,21 @@ class TransferServiceTest extends TestCase
         $transfer->transfer($from, $to, -1000);
     }
 
-    public function testValidationCurrencyError():void
+    public function testValidateCurrencyError():void
     {
         $from = new Account("Основная карта", 2000, "RUB");
         $to = new Account("Наличные", 5000, "USD");
         $transfer = new TransferService;
         $this->expectException(InvalidArgumentException::class);
         $transfer->transfer($from, $to, 1000);
+    }
+
+    public function testVaildateZeroAmount():void
+    {
+       $from = new Account("Основная карта", 2000, "RUB");
+        $to = new Account("Наличные", 5000, "USD");
+        $transfer = new TransferService;
+        $this->expectException(InvalidArgumentException::class);
+        $transfer->transfer($from, $to, 0); 
     }
 }
