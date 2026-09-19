@@ -25,18 +25,22 @@ class TransferService
     }
     public function transfer(AccountInterface $from, AccountInterface $to, float $amount):bool
     {
-        if ($this->validateAmount($amount)) {
-            if ($this->validateCurrency($from, $to)) {
-                if ($from->withdraw($amount)) {
-                    return $to->deposit($amount);
-                } else {
-                    throw new InvalidArgumentException("Списание не было выполнено, перевод невозможен!");
-                }
-            } else {
-                throw new InvalidArgumentException("Разные валюты, перевод невозможен!");
-            }
-        } else {
+        if (!$this->validateAmount($amount)) {
             throw new \InvalidArgumentException("Введена некорректная сумма!");
         }
+
+        if (!$this->validateCurrency($from, $to)) {
+            throw new \InvalidArgumentException("Разные валюты, перевод невозможен!");
+
+        }
+        if (!$from->withdraw($amount)) {
+            throw new \InvalidArgumentException("Списание не было выполнено, перевод невозможен!");
+        }
+
+        if (!$to->deposit($amount)) {
+            throw new \InvalidArgumentException("Списание прошло успешно, но поступление не было выполнено, перевод не завершен!");
+        }
+
+        return true;
     }
 }
