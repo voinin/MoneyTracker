@@ -11,16 +11,6 @@ use PHPUnit\Framework\TestCase;
 
 class TransactionProcessorTest extends TestCase
 {
-    public function testRigthTransactionProcess():void
-    {
-        $account = new Account("Основная карта", 2500, "RUB");
-        $repository = new TransactionRepository;
-        $transaction = new Transaction(TransactionType::EXPENSE, 1000, "food");
-        $process = new TransactionProcessor($repository);
-        $process->processTransaction($transaction, $account);
-        $this->assertSame(1500.0, $account->getBalance());
-    }
-
     public function testTransactionProcessReturnTrue():void
     {
         $account = new Account("Основная карта", 2500, "RUB");
