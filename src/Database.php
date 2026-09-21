@@ -47,23 +47,22 @@ class Database
 
     public function getTransactions():array
     {
-        $stmt = $this->connection->prepare("SELECT id, type, amount, category, created_at FROM transactions ORDER BY created_at DESC");
-        $stmt->execute();
+        $stmt = $this->connection->query("SELECT id, type, amount, category, created_at FROM transactions ORDER BY created_at DESC");
         $transactions = $stmt->fetchAll();
         return $transactions;
     }
 
     public function getIncomeCount():int
     {
-        $incomeCount = $this->connection->prepare("SELECT COUNT(*) WHERE type = 'income'");
+        $incomeCount = $this->connection->prepare("SELECT COUNT(*) FROM transactions WHERE type = 'income'");
         $incomeCount->execute();
         return (int) $incomeCount->fetchColumn();
     }
 
     public function getTransactionsByType(string $type):array
     {
-        $stmt = $this->connection->prepare("SELECT id, type, amount, category, created_at FROM transactions WHERE type = '$type' ORDER BY created_at DESC");
-        $stmt->execute();
+        $stmt = $this->connection->prepare("SELECT id, type, amount, category, created_at FROM transactions WHERE type = :type ORDER BY created_at DESC");
+        $stmt->execute([' :type' => $type]);
         $transactions = $stmt->fetchAll();
         return $transactions;
     }
