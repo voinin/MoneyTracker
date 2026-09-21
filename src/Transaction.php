@@ -14,6 +14,11 @@ class Transaction
         $this -> amount = $amount;
         $this -> category = $category;
     }
+
+    public function getType()
+    {
+        return $this->type;
+    }
     
      public function isExpense():bool
     {
