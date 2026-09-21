@@ -2,7 +2,9 @@
 
 namespace MoneyTracker;
 
+use MoneyTracker\Enums\TransactionType;
 use PDO;
+use PhpParser\Node\Expr\FuncCall;
 
 class Database
 {
@@ -40,6 +42,29 @@ class Database
     public function getTransactionCount():int
     {
         $transactionCount = $this->connection->query("SELECT COUNT(*) FROM transactions;");
-        return (int) $transactionCount;
+        return (int) $transactionCount->fetchColumn();
+    }
+
+    public function getTransactions():array
+    {
+        $stmt = $this->connection->prepare("SELECT id, type, amount, category, created_at FROM transactions ORDER BY created_at DESC");
+        $stmt->execute();
+        $transactions = $stmt->fetchAll();
+        return $transactions;
+    }
+
+    public function getIncomeCount():int
+    {
+        $incomeCount = $this->connection->prepare("SELECT COUNT(*) WHERE type = 'income'");
+        $incomeCount->execute();
+        return (int) $incomeCount->fetchColumn();
+    }
+
+    public function getTransactionsByType(string $type):array
+    {
+        $stmt = $this->connection->prepare("SELECT id, type, amount, category, created_at FROM transactions WHERE type = '$type' ORDER BY created_at DESC");
+        $stmt->execute();
+        $transactions = $stmt->fetchAll();
+        return $transactions;
     }
 }
