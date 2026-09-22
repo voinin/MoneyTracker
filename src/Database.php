@@ -62,7 +62,7 @@ class Database
     public function getTransactionsByType(string $type):array
     {
         $stmt = $this->connection->prepare("SELECT id, type, amount, category, created_at FROM transactions WHERE type = :type ORDER BY created_at DESC");
-        $stmt->execute([' :type' => $type]);
+        $stmt->execute([':type' => $type]);
         $transactions = $stmt->fetchAll();
         return $transactions;
     }
