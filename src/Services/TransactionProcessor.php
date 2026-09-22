@@ -9,11 +9,7 @@ use MoneyTracker\Repositories\TransactionRepositoryInterface;
 
 class TransactionProcessor
 {
-    private TransactionRepositoryInterface $repository;
-    public function __construct(TransactionRepositoryInterface $repository)
-    {
-        $this->repository = $repository;
-    }    
+    public function __construct(private TransactionRepositoryInterface $repository){}    
 
     public function processTransaction(Transaction $transaction, Account $account): bool
     {
