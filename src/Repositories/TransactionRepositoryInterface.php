@@ -5,9 +5,9 @@ use MoneyTracker\Transaction;
 
 interface TransactionRepositoryInterface
 {
-    public function save(Transaction $transaction): void;
-    public function getTransactiosCount():int;
-    public function getTransaction():array;
-    public function getIncome():int;
-    public function getTransactionsByType(string $type):int;
+    public function save(Transaction $transaction): int;
+    public function getTransactionsCount():int;
+    public function getTransactions():array;
+    public function getIncomeCount():int;
+    public function getTransactionsByType(string $type):array;
 }
