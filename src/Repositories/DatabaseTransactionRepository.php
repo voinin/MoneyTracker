@@ -25,6 +25,15 @@ class DatabaseTransactionRepository implements TransactionRepositoryInterface
         return (int) $this->database->getConnection()->lastInsertId();
     }
 
+    private function createTransactionsFromArrayOfRows(array $rows):array
+    {
+        $transactions = [];
+        foreach ($rows as $row) {
+            $transactions[] = $this->createTransactionFromRow($row);
+        }
+        return $transactions;
+    }
+
     public function getTransactionsCount():int
     {
         $transactionCount = $this->database->getConnection()->query("SELECT COUNT(*) FROM transactions;");
@@ -35,11 +44,7 @@ class DatabaseTransactionRepository implements TransactionRepositoryInterface
     {
         $stmt = $this->database->getConnection()->query("SELECT id, type, amount, category, created_at FROM transactions ORDER BY created_at DESC");
         $rows = $stmt->fetchAll();
-        $transactions = [];
-        foreach ($rows as $row) {
-            $transactions[] = $this->createTransactionFromRow($row);
-        }
-        return $transactions;
+        return $this->createTransactionsFromArrayOfRows($rows);
     }
 
     public function getIncomeCount():int
@@ -49,16 +54,58 @@ class DatabaseTransactionRepository implements TransactionRepositoryInterface
         return (int) $incomeCount->fetchColumn();
     }
 
-    public function getTransactionsByType(string $type):array
+    public function getTransactionsByType(TransactionType $type):array
     {
         $stmt = $this->database->getConnection()->prepare("SELECT id, type, amount, category, created_at FROM transactions WHERE type = :type ORDER BY created_at DESC");
-        $stmt->execute([':type' => $type]);
-        $transactions = $stmt->fetchAll();
-        return $transactions;
+        $stmt->execute([':type' => $type->value]);
+        $rows = $stmt->fetchAll();
+        return $this->createTransactionsFromArrayOfRows($rows);
     }
 
     public function createTransactionFromRow(array $row):Transaction
     {
         return new Transaction(TransactionType::from($row['type']), (float) $row['amount'], $row['category']);
+    }
+    
+    public function getTransactionById(int $id): ?Transaction
+    {
+        $stmt = $this->database->getConnection()->prepare("SELECT type, amount, category FROM transactions WHERE id = :id");
+        $stmt->execute([':id' => $id]);
+        $transaction = $stmt->fetch();
+        if ($transaction !== false) {
+            return $this->createTransactionFromRow($transaction);
+
+        }
+        return null;
+    }
+
+    public function getExpenseSum():float
+    {
+        $stmt = $this->database->getConnection()->prepare ("SELECT SUM(amount) FROM transactions WHERE type = :type");
+        $stmt->execute([':type' => TransactionType::EXPENSE->value]);
+        return (float) $stmt->fetchColumn();
+    }
+
+    public function getIncomeSum():float
+    {
+        $stmt = $this->database->getConnection()->prepare ("SELECT SUM(amount) FROM transactions WHERE type = :type");
+        $stmt->execute([':type' => TransactionType::INCOME->value]);
+        return (float) $stmt->fetchColumn();
+    }
+
+    public function getBalance():float
+    {
+        $balance = $this->getIncomeSum() - $this->getExpenseSum();
+        return (float) $balance;
+    }
+
+    public function delete(int $id):bool
+    {
+        $stmt=$this->database->getConnection()->prepare("DELETE FROM transactions WHERE id = :id");
+        $stmt->execute([':id' => $id]);
+        if ($stmt->rowCount() > 0) {
+            return true;
+        }
+        return false;
     }
 }
