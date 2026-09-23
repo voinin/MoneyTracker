@@ -1,6 +1,8 @@
 <?php
 
 namespace MoneyTracker\Repositories;
+
+use MoneyTracker\Enums\TransactionType;
 use MoneyTracker\Transaction;
 
 interface TransactionRepositoryInterface
@@ -9,5 +11,5 @@ interface TransactionRepositoryInterface
     public function getTransactionsCount():int;
     public function getTransactions():array;
     public function getIncomeCount():int;
-    public function getTransactionsByType(string $type):array;
+    public function getTransactionsByType(TransactionType $type):array;
 }
