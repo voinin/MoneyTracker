@@ -83,14 +83,22 @@ class DatabaseTransactionRepository implements TransactionRepositoryInterface
     {
         $stmt = $this->database->getConnection()->prepare ("SELECT SUM(amount) FROM transactions WHERE type = :type");
         $stmt->execute([':type' => TransactionType::EXPENSE->value]);
-        return (float) $stmt->fetchColumn();
+        $expenseSum = $stmt->fetchColumn();
+         if ($expenseSum !== null) {
+          return (float) $expenseSum;
+        }
+        return 0.0; 
     }
 
     public function getIncomeSum():float
     {
         $stmt = $this->database->getConnection()->prepare ("SELECT SUM(amount) FROM transactions WHERE type = :type");
         $stmt->execute([':type' => TransactionType::INCOME->value]);
-        return (float) $stmt->fetchColumn();
+        $incomeSum = $stmt->fetchColumn();
+        if ($incomeSum !== null) {
+            return (float) $incomeSum;
+        }
+        return 0.0;
     }
 
     public function getBalance():float
