@@ -2,6 +2,7 @@
 
 namespace MoneyTracker;
 
+use InvalidArgumentException;
 use MoneyTracker\Enums\TransactionType;
 
 class Transaction
@@ -11,7 +12,11 @@ class Transaction
     function __construct(TransactionType $type, float $amount, string $category)
     {
         $this -> type = $type;
-        $this -> amount = $amount;
+        if ($amount > 0) {
+            $this -> amount = $amount;
+        } else {
+            throw new InvalidArgumentException("Введена некорректная сумма!");
+        }
         $this -> category = $category;
     }
 
