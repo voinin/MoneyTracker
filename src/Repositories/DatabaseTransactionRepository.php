@@ -1,5 +1,7 @@
 <?php
 namespace MoneyTracker\Repositories;
+
+use InvalidArgumentException;
 use MoneyTracker\Repositories\TransactionRepositoryInterface;
 use MoneyTracker\Transaction;
 use MoneyTracker\Database;
@@ -48,13 +50,6 @@ class DatabaseTransactionRepository implements TransactionRepositoryInterface
         return $this->createTransactionsFromArrayOfRows($rows);
     }
 
-    public function getIncomeCount():int
-    {
-        $incomeCount = $this->database->getConnection()->prepare("SELECT COUNT(*) FROM transactions WHERE type = 'income'");
-        $incomeCount->execute();
-        return (int) $incomeCount->fetchColumn();
-    }
-
     public function getTransactionsByType(TransactionType $type):array
     {
         $stmt = $this->database->getConnection()->prepare("SELECT id, type, amount, category, created_at FROM transactions WHERE type = :type ORDER BY created_at DESC");
@@ -70,7 +65,7 @@ class DatabaseTransactionRepository implements TransactionRepositoryInterface
     
     public function getTransactionById(int $id): ?Transaction
     {
-        $stmt = $this->database->getConnection()->prepare("SELECT type, amount, category FROM transactions WHERE id = :id");
+        $stmt = $this->database->getConnection()->prepare("SELECT id, type, amount, category, created_at FROM transactions WHERE id = :id");
         $stmt->execute([':id' => $id]);
         $transaction = $stmt->fetch();
         if ($transaction !== false) {
@@ -80,26 +75,25 @@ class DatabaseTransactionRepository implements TransactionRepositoryInterface
         return null;
     }
 
-    public function getExpenseSum():float
+    private function getSumByType(TransactionType $type): float
     {
         $stmt = $this->database->getConnection()->prepare ("SELECT SUM(amount) FROM transactions WHERE type = :type");
-        $stmt->execute([':type' => TransactionType::EXPENSE->value]);
-        $expenseSum = $stmt->fetchColumn();
-         if ($expenseSum !== null) {
-          return (float) $expenseSum;
+        $stmt->execute([':type' => $type->value]);
+        $sum = $stmt->fetchColumn();
+         if ($sum !== null) {
+          return (float) $sum;
         }
-        return 0.0; 
+        return 0.0;
+    }
+
+    public function getExpenseSum():float
+    {
+        return $this->getSumByType(TransactionType::EXPENSE);
     }
 
     public function getIncomeSum():float
     {
-        $stmt = $this->database->getConnection()->prepare ("SELECT SUM(amount) FROM transactions WHERE type = :type");
-        $stmt->execute([':type' => TransactionType::INCOME->value]);
-        $incomeSum = $stmt->fetchColumn();
-        if ($incomeSum !== null) {
-            return (float) $incomeSum;
-        }
-        return 0.0;
+        return $this->getSumByType(TransactionType::INCOME);
     }
 
     public function delete(int $id):bool
@@ -119,5 +113,31 @@ class DatabaseTransactionRepository implements TransactionRepositoryInterface
             return $transaction;
         }
         throw new RuntimeException("Ошибка репозитория! Такой транзакции не существует!");
+    }
+
+    public function getTransactionsCountByType(TransactionType $type):int
+    {
+        $stmt = $this->database->getConnection()->prepare("SELECT COUNT(*) FROM transactions WHERE type = :type ORDER BY created_at DESC");
+        $stmt->execute([":type" => $type->value]);
+        return (int) $stmt->fetchColumn();
+    }
+
+    public function getTransactionsByCategory(string $category):array
+    {
+        $stmt = $this->database->getConnection()->prepare("SELECT type, amount, category FROM transactions WHERE category = :category ORDER BY created_at DESC");
+        $stmt->execute([":category" => $category]);
+        $transactions = $stmt->fetchAll();
+        return $this->createTransactionsFromArrayOfRows($transactions);
+    }
+
+    public function getLatestTransactions(int $limit): array
+    {
+        $limit = (int) $limit;
+        if ($limit <= 0) {
+            throw new InvalidArgumentException("Введено некорректное число!");
+        }
+
+        $stmt = $this->database->getConnection()->query("SELECT type, amount, category FROM transactions ORDER BY created_at DESC LIMIT $limit");
+        return $this->createTransactionsFromArrayOfRows($stmt->fetchAll());
     }
 }
