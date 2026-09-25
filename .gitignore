@@ -1,0 +1,30 @@
+# Composer
+/vendor/
+
+# PHPUnit
+/.phpunit.cache/
+.phpunit.result.cache
+/coverage/
+/phpunit.xml.bak
+
+# PHPStan / Psalm / Rector
+/.phpstan.cache/
+/.psalm/
+/.rector.cache/
+
+# IDE
+/.idea/
+/.vscode/
+*.swp
+*.swo
+*.sublime-*
+
+# ОС
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Логи и временные файлы
+*.log
+/tmp/
+/var/
