@@ -1,15 +1,16 @@
 <?php
-
+namespace MoneyTracker\Repositories;
 use MoneyTracker\Repositories\TransactionRepositoryInterface;
 use MoneyTracker\Transaction;
 use MoneyTracker\Database;
 use MoneyTracker\Enums\TransactionType;
+use RuntimeException;
 
 class DatabaseTransactionRepository implements TransactionRepositoryInterface
 {
     public function __construct(private Database $database) {}
 
-    #[Override]
+    #[\Override]
     public function save(Transaction $transaction): int
     {
         $sql = 'INSERT INTO transactions (type, amount, category)
@@ -101,12 +102,6 @@ class DatabaseTransactionRepository implements TransactionRepositoryInterface
         return 0.0;
     }
 
-    public function getBalance():float
-    {
-        $balance = $this->getIncomeSum() - $this->getExpenseSum();
-        return (float) $balance;
-    }
-
     public function delete(int $id):bool
     {
         $stmt=$this->database->getConnection()->prepare("DELETE FROM transactions WHERE id = :id");
@@ -115,5 +110,14 @@ class DatabaseTransactionRepository implements TransactionRepositoryInterface
             return true;
         }
         return false;
+    }
+
+    public function getTransactionByIdOrFail(int $id):Transaction
+    {
+        $transaction = $this->getTransactionById($id);
+        if ($transaction !== null) {
+            return $transaction;
+        }
+        throw new RuntimeException("Ошибка репозитория! Такой транзакции не существует!");
     }
 }
