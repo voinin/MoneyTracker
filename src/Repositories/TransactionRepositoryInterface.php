@@ -14,4 +14,7 @@ interface TransactionRepositoryInterface
     public function getTransactionsByType(TransactionType $type):array;
     public function getIncomeSum():float;
     public function getExpenseSum():float;
+    public function getTransactionByIdOrFail(int $id):Transaction;
+    public function delete(int $id):bool;
+
 }
