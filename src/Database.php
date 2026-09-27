@@ -10,10 +10,10 @@ class Database
 {
     private PDO $connection;
 
-    public function __construct()
+    public function __construct(string $dbName = 'money_tracker')
     {
         $this->connection = new PDO(
-            'mysql:host=127.0.0.1;port=3306;dbname=money_tracker;charset=utf8mb4',
+            'mysql:host=127.0.0.1;port=3306;dbname='.$dbName.';charset=utf8mb4',
             'moneytracker',
             'moneytracker',
             [
