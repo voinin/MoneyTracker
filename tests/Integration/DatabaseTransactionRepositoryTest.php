@@ -1,5 +1,7 @@
 <?php
 namespace MoneyTracker\Tests\Integration;
+
+use InvalidArgumentException;
 use MoneyTracker\Database;
 use MoneyTracker\Enums\TransactionType;
 use MoneyTracker\Repositories\DatabaseTransactionRepository;
@@ -32,7 +34,7 @@ class DatabaseTransactionRepositoryTest extends TestCase
         $transaction =  new Transaction(TransactionType::EXPENSE, 2500.0, "food");
         $id = $this->repository->save($transaction);
         $this->assertGreaterThan(0, $id);
-        $transactionByRepostitory = $this->repository->getTransactionById($id);
+        $transactionByRepostitory = $this->repository->getTransactionByIdOrFail($id);
         $this->assertNotNull($transactionByRepostitory);
         $this->assertSame(TransactionType::EXPENSE, $transactionByRepostitory->getType());
         $this->assertSame(2500.0, $transactionByRepostitory->getAmount());
@@ -105,5 +107,57 @@ class DatabaseTransactionRepositoryTest extends TestCase
     public function testGetTransactionCountByTypeReturnsZero()
     {
         $this->assertSame(0, $this->repository->getTransactionsCountByType(TransactionType::INCOME));
+    }
+
+    public function testGetLatestTransactions()
+    {
+        $this->repository->save(new Transaction(TransactionType::INCOME, 56700.0, "salary"));
+        $this->repository->save(new Transaction(TransactionType::INCOME, 500.0, "salary"));
+        $this->repository->save(new Transaction(TransactionType::INCOME, 5700.0, "salary"));
+        $this->assertCount(2, $this->repository->getLatestTransactions(2));
+    }
+
+    public function testGetLatestTransactionsThrowsExceptionOnInvalidLimit()
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->repository->getLatestTransactions(0);
+    }
+
+    public function testGetLatestTransactionsReturnEmptyArry()
+    {
+        $this->assertSame([], $this->repository->getLatestTransactions(2));
+    }
+
+    public function testGetTransactions()
+    {
+        $this->repository->save(new Transaction(TransactionType::INCOME, 56700.0, "salary"));
+        $this->repository->save(new Transaction(TransactionType::EXPENSE, 500.0, "food"));
+        $this->repository->save(new Transaction(TransactionType::INCOME, 5700.0, "salary"));
+        $transactions = $this->repository->getTransactions();
+
+        $this->assertCount(3, $transactions);
+        $this->assertSame(TransactionType::INCOME, $transactions[0]->getType());
+        $this->assertSame(TransactionType::EXPENSE, $transactions[1]->getType());
+        $this->assertSame(TransactionType::INCOME, $transactions[2]->getType());
+    }
+
+    public function testGetTransactionsArrayEmptyArray()
+    {
+        $this->assertSame([], $this->repository->getTransactions());
+    }
+
+    public function testSave()
+    {
+        $incomeId = $this->repository->save(new Transaction(TransactionType::INCOME, 56700.0, "salary"));
+        $expenseId = $this->repository->save(new Transaction(TransactionType::EXPENSE, 500.0, "food"));
+        $income = $this->repository->getTransactionByIdOrFail($incomeId);
+        $expense = $this->repository->getTransactionByIdOrFail($expenseId);
+        $this->assertSame(TransactionType::INCOME, $income->getType());
+        $this->assertSame(56700.0, $income->getAmount());
+        $this->assertSame("salary", $income->getCategory());
+
+        $this->assertSame(TransactionType::EXPENSE, $expense->getType());
+        $this->assertSame(500.0, $expense->getAmount());
+        $this->assertSame("food", $expense->getCategory());
     }
 }
