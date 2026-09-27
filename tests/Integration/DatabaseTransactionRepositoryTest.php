@@ -5,10 +5,11 @@ use InvalidArgumentException;
 use MoneyTracker\Database;
 use MoneyTracker\Enums\TransactionType;
 use MoneyTracker\Repositories\DatabaseTransactionRepository;
-use MoneyTracker\Repositories\TransactionRepository;
 use MoneyTracker\Transaction;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
+
+use function PHPUnit\Framework\assertSame;
 
 class DatabaseTransactionRepositoryTest extends TestCase
 {
@@ -24,12 +25,12 @@ class DatabaseTransactionRepositoryTest extends TestCase
         $this->repository = new DatabaseTransactionRepository($this->database);
     }
 
-    public function testConnection()
+    public function testConnection():void
     {
         $this->assertTrue($this->database->testConnection());
     }
 
-    public function testCreateTransactionWithDatabaseRepository()
+    public function testCreateTransactionWithDatabaseRepository():void
     {
         $transaction =  new Transaction(TransactionType::EXPENSE, 2500.0, "food");
         $id = $this->repository->save($transaction);
@@ -41,7 +42,7 @@ class DatabaseTransactionRepositoryTest extends TestCase
         $this->assertSame("food", $transactionByRepostitory->getCategory());
     }
 
-    public function testGetTransactionsByType()
+    public function testGetTransactionsByType():void
     {
         $this->repository->save(new Transaction(TransactionType::EXPENSE, 2700.0, "food"));
         $this->repository->save(new Transaction(TransactionType::INCOME, 3300.0, "salary"));
@@ -52,7 +53,12 @@ class DatabaseTransactionRepositoryTest extends TestCase
         $this->assertSame(TransactionType::EXPENSE, $rows[1]->getType());
     }
 
-    public function testGetTransactionsByCategory()
+    public function testGetTransactionByTypeReturnsEmptyArray():void
+    {
+        $this->assertSame([], $this->repository->getTransactionsByType(TransactionType::EXPENSE));
+    }
+
+    public function testGetTransactionsByCategory():void
     {
         $this->repository->save(new Transaction(TransactionType::EXPENSE, 2700.0, "food"));
         $this->repository->save(new Transaction(TransactionType::INCOME, 33000, "salary"));
@@ -63,21 +69,25 @@ class DatabaseTransactionRepositoryTest extends TestCase
         $this->assertSame("food", $rows[1]->getCategory());
     }
 
-    public function testGetTransactionByIdOrFailReturnsTransaction()
+    public function testGetTransactionByCategoryReturnsEmptyArray():void
+    {
+        $this->assertSame([], $this->repository->getTransactionsByCategory("food"));
+    }
+
+    public function testGetTransactionByIdOrFailReturnsTransaction():void
     {
         $id = $this->repository->save(new Transaction(TransactionType::INCOME, 50000, "salary"));
         $transaction = $this->repository->getTransactionByIdOrFail($id);
         $this->assertInstanceOf(Transaction::class, $transaction);
     }
 
-    public function testGetTransactionByIdOrFailReturnsFail()
+    public function testGetTransactionByIdOrFailReturnsFail():void
     {
-        $id = $this->repository->save(new Transaction(TransactionType::INCOME, 50000, "salary"));
         $this->expectException(RuntimeException::class);
-        $this->repository->getTransactionByIdOrFail($id + 256);
+        $this->repository->getTransactionByIdOrFail(1);
     }
 
-    public function testGetIncomeSum()
+    public function testGetIncomeSum():void
     {
         $this->repository->save(new Transaction(TransactionType::INCOME, 50000.0, "salary"));
         $this->repository->save(new Transaction(TransactionType::INCOME, 5000.0, "salary"));
@@ -85,7 +95,12 @@ class DatabaseTransactionRepositoryTest extends TestCase
         $this->assertSame(55000.0, $this->repository->getIncomeSum());
     }
 
-    public function testGetExpenceSum()
+    public function testGetIncomeSumReturnsZero():void
+    {
+        $this->assertSame(0.0, $this->repository->getIncomeSum());
+    }
+
+    public function testGetExpenseSum():void
     {
         $this->repository->save(new Transaction(TransactionType::INCOME, 50000.0, "salary"));
         $this->repository->save(new Transaction(TransactionType::INCOME, 5000.0, "salary"));
@@ -93,7 +108,12 @@ class DatabaseTransactionRepositoryTest extends TestCase
         $this->assertSame(9000.0, $this->repository->getExpenseSum());
     }
 
-    public function testGetTransactionCountByType()
+    public function testGetExpenseSumReturnsZero():void
+    {
+        $this->assertSame(0.0, $this->repository->getExpenseSum());
+    }
+
+    public function testGetTransactionCountByType():void
     {
         $this->repository->save(new Transaction(TransactionType::INCOME, 56700.0, "salary"));
         $this->repository->save(new Transaction(TransactionType::INCOME, 500.0, "salary"));
@@ -104,12 +124,12 @@ class DatabaseTransactionRepositoryTest extends TestCase
         $this->assertSame(2, $this->repository->getTransactionsCountByType(TransactionType::EXPENSE));
     }
 
-    public function testGetTransactionCountByTypeReturnsZero()
+    public function testGetTransactionCountByTypeReturnsZero():void
     {
         $this->assertSame(0, $this->repository->getTransactionsCountByType(TransactionType::INCOME));
     }
 
-    public function testGetLatestTransactions()
+    public function testGetLatestTransactions():void
     {
         $this->repository->save(new Transaction(TransactionType::INCOME, 56700.0, "salary"));
         $this->repository->save(new Transaction(TransactionType::INCOME, 500.0, "salary"));
@@ -117,18 +137,18 @@ class DatabaseTransactionRepositoryTest extends TestCase
         $this->assertCount(2, $this->repository->getLatestTransactions(2));
     }
 
-    public function testGetLatestTransactionsThrowsExceptionOnInvalidLimit()
+    public function testGetLatestTransactionsThrowsExceptionOnInvalidLimit():void
     {
         $this->expectException(InvalidArgumentException::class);
         $this->repository->getLatestTransactions(0);
     }
 
-    public function testGetLatestTransactionsReturnEmptyArry()
+    public function testGetLatestTransactionsReturnEmptyArray():void
     {
         $this->assertSame([], $this->repository->getLatestTransactions(2));
     }
 
-    public function testGetTransactions()
+    public function testGetTransactions():void
     {
         $this->repository->save(new Transaction(TransactionType::INCOME, 56700.0, "salary"));
         $this->repository->save(new Transaction(TransactionType::EXPENSE, 500.0, "food"));
@@ -141,12 +161,12 @@ class DatabaseTransactionRepositoryTest extends TestCase
         $this->assertSame(TransactionType::INCOME, $transactions[2]->getType());
     }
 
-    public function testGetTransactionsArrayEmptyArray()
+    public function testGetTransactionsArrayEmptyArray():void
     {
         $this->assertSame([], $this->repository->getTransactions());
     }
 
-    public function testSave()
+    public function testSave():void
     {
         $incomeId = $this->repository->save(new Transaction(TransactionType::INCOME, 56700.0, "salary"));
         $expenseId = $this->repository->save(new Transaction(TransactionType::EXPENSE, 500.0, "food"));
@@ -160,4 +180,30 @@ class DatabaseTransactionRepositoryTest extends TestCase
         $this->assertSame(500.0, $expense->getAmount());
         $this->assertSame("food", $expense->getCategory());
     }
+
+    public function testGetTransactionsCount():void
+    {
+        $this->repository->save(new Transaction(TransactionType::INCOME, 56700.0, "salary"));
+        $this->repository->save(new Transaction(TransactionType::EXPENSE, 500.0, "food"));
+        $this->repository->save(new Transaction(TransactionType::INCOME, 5700.0, "salary"));
+        assertSame(3, $this->repository->getTransactionsCount());
+    }
+
+    public function testGetTransactionsCountReturnsZero():void
+    {
+        $this->assertSame(0, $this->repository->getTransactionsCount());
+    }
+
+    public function testDeleteReturnsTrue():void
+    {
+        $id = $this->repository->save(new Transaction(TransactionType::EXPENSE, 100.0, "food"));
+        $this->assertTrue($this->repository->delete($id));
+        $this->assertSame(0, $this->repository->getTransactionsCount());
+    }
+
+    public function testDeleteReturnsFalseWhenIdDoesNotExist():void
+    {
+        $this->assertFalse($this->repository->delete(9999));
+    }   
+
 }
