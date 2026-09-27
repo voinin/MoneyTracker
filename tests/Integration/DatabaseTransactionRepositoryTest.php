@@ -6,17 +6,20 @@ use MoneyTracker\Repositories\DatabaseTransactionRepository;
 use MoneyTracker\Repositories\TransactionRepository;
 use MoneyTracker\Transaction;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
 class DatabaseTransactionRepositoryTest extends TestCase
 {
     private string $dbName = 'money_tracker_test';
     private Database $database;
+    private DatabaseTransactionRepository $repository;
 
     protected function setUp():void
     {
         parent::setUp();
         $this->database = new Database($this->dbName);
         $this->database->getConnection()->exec('TRUNCATE TABLE transactions');
+        $this->repository = new DatabaseTransactionRepository($this->database);
     }
 
     public function testConnection()
@@ -26,11 +29,10 @@ class DatabaseTransactionRepositoryTest extends TestCase
 
     public function testCreateTransactionWithDatabaseRepository()
     {
-        $repository = new DatabaseTransactionRepository($this->database);
         $transaction =  new Transaction(TransactionType::EXPENSE, 2500.0, "food");
-        $id = $repository->save($transaction);
+        $id = $this->repository->save($transaction);
         $this->assertGreaterThan(0, $id);
-        $transactionByRepostitory = $repository->getTransactionById($id);
+        $transactionByRepostitory = $this->repository->getTransactionById($id);
         $this->assertNotNull($transactionByRepostitory);
         $this->assertSame(TransactionType::EXPENSE, $transactionByRepostitory->getType());
         $this->assertSame(2500.0, $transactionByRepostitory->getAmount());
@@ -39,11 +41,10 @@ class DatabaseTransactionRepositoryTest extends TestCase
 
     public function testGetTransactionsByType()
     {
-        $repository = new DatabaseTransactionRepository($this->database);
-        $repository->save(new Transaction(TransactionType::EXPENSE, 2700.0, "food"));
-        $repository->save(new Transaction(TransactionType::INCOME, 33000, "salary"));
-        $repository->save(new Transaction(TransactionType::EXPENSE, 9000, "car repair"));
-        $rows = $repository->getTransactionsByType(TransactionType::EXPENSE);
+        $this->repository->save(new Transaction(TransactionType::EXPENSE, 2700.0, "food"));
+        $this->repository->save(new Transaction(TransactionType::INCOME, 3300.0, "salary"));
+        $this->repository->save(new Transaction(TransactionType::EXPENSE, 9000.0, "car repair"));
+        $rows = $this->repository->getTransactionsByType(TransactionType::EXPENSE);
         $this->assertCount(2, $rows);
         $this->assertSame(TransactionType::EXPENSE, $rows[0]->getType());
         $this->assertSame(TransactionType::EXPENSE, $rows[1]->getType());
@@ -51,13 +52,58 @@ class DatabaseTransactionRepositoryTest extends TestCase
 
     public function testGetTransactionsByCategory()
     {
-        $repository = new DatabaseTransactionRepository($this->database);
-        $repository->save(new Transaction(TransactionType::EXPENSE, 2700.0, "food"));
-        $repository->save(new Transaction(TransactionType::INCOME, 33000, "salary"));
-        $repository->save(new Transaction(TransactionType::EXPENSE, 9000, "food"));
-        $rows = $repository->getTransactionsByCategory("food");
+        $this->repository->save(new Transaction(TransactionType::EXPENSE, 2700.0, "food"));
+        $this->repository->save(new Transaction(TransactionType::INCOME, 33000, "salary"));
+        $this->repository->save(new Transaction(TransactionType::EXPENSE, 9000, "food"));
+        $rows = $this->repository->getTransactionsByCategory("food");
         $this->assertCount(2, $rows);
         $this->assertSame("food", $rows[0]->getCategory());
         $this->assertSame("food", $rows[1]->getCategory());
+    }
+
+    public function testGetTransactionByIdOrFailReturnsTransaction()
+    {
+        $id = $this->repository->save(new Transaction(TransactionType::INCOME, 50000, "salary"));
+        $transaction = $this->repository->getTransactionByIdOrFail($id);
+        $this->assertInstanceOf(Transaction::class, $transaction);
+    }
+
+    public function testGetTransactionByIdOrFailReturnsFail()
+    {
+        $id = $this->repository->save(new Transaction(TransactionType::INCOME, 50000, "salary"));
+        $this->expectException(RuntimeException::class);
+        $this->repository->getTransactionByIdOrFail($id + 256);
+    }
+
+    public function testGetIncomeSum()
+    {
+        $this->repository->save(new Transaction(TransactionType::INCOME, 50000.0, "salary"));
+        $this->repository->save(new Transaction(TransactionType::INCOME, 5000.0, "salary"));
+        $this->repository->save(new Transaction(TransactionType::EXPENSE, 9000.0, "food"));
+        $this->assertSame(55000.0, $this->repository->getIncomeSum());
+    }
+
+    public function testGetExpenceSum()
+    {
+        $this->repository->save(new Transaction(TransactionType::INCOME, 50000.0, "salary"));
+        $this->repository->save(new Transaction(TransactionType::INCOME, 5000.0, "salary"));
+        $this->repository->save(new Transaction(TransactionType::EXPENSE, 9000.0, "food"));
+        $this->assertSame(9000.0, $this->repository->getExpenseSum());
+    }
+
+    public function testGetTransactionCountByType()
+    {
+        $this->repository->save(new Transaction(TransactionType::INCOME, 56700.0, "salary"));
+        $this->repository->save(new Transaction(TransactionType::INCOME, 500.0, "salary"));
+        $this->repository->save(new Transaction(TransactionType::INCOME, 5700.0, "salary"));
+        $this->repository->save(new Transaction(TransactionType::EXPENSE, 3000.0, "food"));
+        $this->repository->save(new Transaction(TransactionType::EXPENSE, 700.0, "food"));
+        $this->assertSame(3, $this->repository->getTransactionsCountByType(TransactionType::INCOME));
+        $this->assertSame(2, $this->repository->getTransactionsCountByType(TransactionType::EXPENSE));
+    }
+
+    public function testGetTransactionCountByTypeReturnsZero()
+    {
+        $this->assertSame(0, $this->repository->getTransactionsCountByType(TransactionType::INCOME));
     }
 }
