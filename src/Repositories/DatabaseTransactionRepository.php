@@ -40,7 +40,11 @@ class DatabaseTransactionRepository implements TransactionRepositoryInterface
     public function getTransactionsCount():int
     {
         $transactionCount = $this->database->getConnection()->query("SELECT COUNT(*) FROM transactions;");
-        return (int) $transactionCount->fetchColumn();
+        $count = $transactionCount->fetchColumn();
+        if (!$count) {
+            return 0;
+        }
+        return (int) $count;
     }
 
     public function getTransactions():array
@@ -58,12 +62,12 @@ class DatabaseTransactionRepository implements TransactionRepositoryInterface
         return $this->createTransactionsFromArrayOfRows($rows);
     }
 
-    public function createTransactionFromRow(array $row):Transaction
+    private function createTransactionFromRow(array $row):Transaction
     {
         return new Transaction(TransactionType::from($row['type']), (float) $row['amount'], $row['category']);
     }
     
-    public function getTransactionById(int $id): ?Transaction
+    private function getTransactionById(int $id): ?Transaction
     {
         $stmt = $this->database->getConnection()->prepare("SELECT id, type, amount, category, created_at FROM transactions WHERE id = :id");
         $stmt->execute([':id' => $id]);
@@ -117,14 +121,14 @@ class DatabaseTransactionRepository implements TransactionRepositoryInterface
 
     public function getTransactionsCountByType(TransactionType $type):int
     {
-        $stmt = $this->database->getConnection()->prepare("SELECT COUNT(*) FROM transactions WHERE type = :type ORDER BY created_at DESC");
+        $stmt = $this->database->getConnection()->prepare("SELECT id, COUNT(*) FROM transactions WHERE type = :type");
         $stmt->execute([":type" => $type->value]);
         return (int) $stmt->fetchColumn();
     }
 
     public function getTransactionsByCategory(string $category):array
     {
-        $stmt = $this->database->getConnection()->prepare("SELECT type, amount, category FROM transactions WHERE category = :category ORDER BY created_at DESC");
+        $stmt = $this->database->getConnection()->prepare("SELECT id, type, amount, category FROM transactions WHERE category = :category ORDER BY created_at DESC");
         $stmt->execute([":category" => $category]);
         $transactions = $stmt->fetchAll();
         return $this->createTransactionsFromArrayOfRows($transactions);

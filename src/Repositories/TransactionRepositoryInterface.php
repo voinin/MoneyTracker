@@ -16,9 +16,6 @@ interface TransactionRepositoryInterface
     public function getTransactionByIdOrFail(int $id):Transaction;
     public function delete(int $id):bool;
     public function getTransactionsCountByType(TransactionType $type): int;
-    public function getTransactionById(int $id): ?Transaction;
-    public function createTransactionFromRow(array $row):Transaction;
     public function getTransactionsByCategory(string $category):array;
     public function getLatestTransactions(int $limit): array;
-
 }
