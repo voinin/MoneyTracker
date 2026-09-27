@@ -30,7 +30,6 @@ class TransferServiceTest extends TestCase
         ->willReturn(true);
 
     $transfer = new TransferService();
-
     $this->assertTrue($transfer->transfer($from, $to, 1000));
 } 
         

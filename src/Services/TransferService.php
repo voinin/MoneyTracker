@@ -38,7 +38,7 @@ class TransferService
         }
 
         if (!$to->deposit($amount)) {
-            throw new \InvalidArgumentException("Списание прошло успешно, но поступление не было выполнено, перевод не завершен!");
+            throw new \InvalidArgumentException("Списание не было выполнено, перевод невозможен!");
         }
 
         return true;
