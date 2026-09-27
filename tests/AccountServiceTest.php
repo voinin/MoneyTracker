@@ -36,4 +36,20 @@ class AccountServiceTest extends TestCase
         $this->expectException(RuntimeException::class);
         $service->getBalance();
     }
+
+    public function testGetBalanceReturnsZero()
+    {
+        $repository = $this->createMock(TransactionRepositoryInterface::class);
+        $repository
+            ->expects($this->once())
+            ->method('getIncomeSum')
+            ->willReturn(0.0);
+        $repository
+            ->expects($this->once())
+            ->method('getExpenseSum')
+            ->willReturn(0.0);
+
+        $service = new AccountService($repository);
+        $this->assertSame(0.0, $service->getBalance());
+    }
 }
