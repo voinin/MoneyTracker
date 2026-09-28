@@ -121,7 +121,7 @@ class DatabaseTransactionRepository implements TransactionRepositoryInterface
 
     public function getTransactionsCountByType(TransactionType $type):int
     {
-        $stmt = $this->database->getConnection()->prepare("SELECT id, COUNT(*) FROM transactions WHERE type = :type");
+        $stmt = $this->database->getConnection()->prepare("SELECT COUNT(*) FROM transactions WHERE type = :type");
         $stmt->execute([":type" => $type->value]);
         return (int) $stmt->fetchColumn();
     }
