@@ -1,6 +1,8 @@
 <?php
 
 namespace MoneyTracker\Tests;
+
+use InvalidArgumentException;
 use MoneyTracker\Account;
 use MoneyTracker\Transaction;
 use MoneyTracker\Enums\TransactionType;
@@ -22,6 +24,20 @@ class TransactionProcessorTest extends TestCase
             ->with($transaction);
         $process = new TransactionProcessor($repository);
         $this->assertTrue($process->processTransaction($transaction, $account));
+        $this->assertSame(1500.0, $account->getBalance());
+    }
+
+    public function testInvalidTransactionDoesntSave():void
+    {
+        $account = new Account("Основная карта", 2500, "RUB");
+        $transaction = new Transaction(TransactionType::EXPENSE, 3000, "food");
+        $repository = $this->createMock(TransactionRepositoryInterface::class);
+        $repository
+            ->expects($this->never())
+            ->method('save');
+        $this->expectException(InvalidArgumentException::class);
+        $processor = new TransactionProcessor($repository);
+        $processor->processTransaction($transaction, $account);
     }
 }
 
