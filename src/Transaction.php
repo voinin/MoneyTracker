@@ -9,7 +9,7 @@ class Transaction
 {   private TransactionType $type;
     private float $amount;
     private string $category;
-    function __construct(TransactionType $type, float $amount, string $category)
+    function __construct(TransactionType $type, float $amount, string $category, private ?int $id = null)
     {
         $this -> type = $type;
         if ($amount > 0) {
@@ -40,20 +40,14 @@ class Transaction
         return $this->amount;
     }
 
-    public function getInfo():string
-    {
-        if ($this->type === "income") {
-            return "Доход: $this->amount ($this->category)";
-        } elseif ($this->type === "expense") {
-            return "Расход: $this->amount ($this->category)";
-        } else {
-            return "Неизвестный тип операции";
-        }
-    }
-
     public function getCategory():string
     {
         return $this->category;
+    }
+
+    public function getId():?int
+    {
+        return $this->id;
     }
 }
 
