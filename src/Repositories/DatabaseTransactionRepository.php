@@ -142,7 +142,7 @@ class DatabaseTransactionRepository implements TransactionRepositoryInterface
             throw new InvalidArgumentException("Введено некорректное число!");
         }
 
-        $stmt = $this->database->getConnection()->query("SELECT type, amount, category FROM transactions ORDER BY created_at DESC LIMIT $limit");
+        $stmt = $this->database->getConnection()->query("SELECT id, type, amount, category FROM transactions ORDER BY created_at DESC LIMIT $limit");
         return $this->createTransactionsFromArrayOfRows($stmt->fetchAll());
     }
 }

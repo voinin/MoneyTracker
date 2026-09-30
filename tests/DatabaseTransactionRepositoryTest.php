@@ -122,11 +122,13 @@ class DatabaseTransactionRepositoryTest extends TestCase
             ->willReturn([[
                 'type'     => 'expense',
                 'amount'   => 2500,
-                'category' => 'food',],
+                'category' => 'food',
+                'id' => 98],
                 [
                 'type'     => 'expense',
                 'amount'   => 500,
-                'category' => 'food',]]);
+                'category' => 'food',
+                'id' => 99]]);
 
         $repositoryTransactions = $this->createRepositoryWithMock($stmt);
         $transactions = $repositoryTransactions->getTransactionsByCategory("food");
@@ -164,11 +166,13 @@ class DatabaseTransactionRepositoryTest extends TestCase
             ->willReturn([[
                 'type'     => 'expense',
                 'amount'   => 2500,
-                'category' => 'food',],
+                'category' => 'food',
+                'id' => 98],
                 [
                 'type'     => 'expense',
                 'amount'   => 500,
-                'category' => 'food',]]);
+                'category' => 'food',
+                'id' => 99]]);
     
         $pdo = $this->createMock(\PDO::class);
         $pdo
