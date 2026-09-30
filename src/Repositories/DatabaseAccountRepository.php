@@ -24,7 +24,7 @@ class DatabaseAccountRepository implements AccountRepositoryInterface
     
     private function createAccountFromRow(array $row):AccountInterface
     {
-        return new Account($row['name'], $row['balance'], $row['currency']);
+        return new Account($row['name'], $row['balance'], $row['currency'], $row['id']);
     }
 
     private function getAccountById(int $id): ?Account

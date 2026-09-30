@@ -49,8 +49,8 @@ class DatabaseTransactionRepositoryTest extends TestCase
                 'amount'   => 2500,
                 'category' => 'food',]);
 
-        $repository = $this->createRepositoryWithMock($stmt);
-        $transaction = $repository->getTransactionByIdOrFail(1);
+        $repositoryTransactions = $this->createRepositoryWithMock($stmt);
+        $transaction = $repositoryTransactions->getTransactionByIdOrFail(1);
         $this->assertSame(TransactionType::EXPENSE, $transaction->getType());
         $this->assertSame(2500.0, $transaction->getAmount());
         $this->assertSame("food", $transaction->getCategory());
@@ -69,9 +69,9 @@ class DatabaseTransactionRepositoryTest extends TestCase
             ->method('fetch')
             ->willReturn(false);
 
-        $repository = $this->createRepositoryWithMock($stmt);
+        $repositoryTransactions = $this->createRepositoryWithMock($stmt);
         $this->expectException(RuntimeException::class);
-        $repository->getTransactionByIdOrFail(1);   
+        $repositoryTransactions->getTransactionByIdOrFail(1);   
     }
     
     public function testGetTransactionCountByTypeIncome()
@@ -87,8 +87,8 @@ class DatabaseTransactionRepositoryTest extends TestCase
             ->method('fetchColumn')
             ->willReturn(3);
 
-        $repository = $this->createRepositoryWithMock($stmt);
-        $this->assertSame(3, $repository->getTransactionsCountByType(TransactionType::INCOME));
+        $repositoryTransactions = $this->createRepositoryWithMock($stmt);
+        $this->assertSame(3, $repositoryTransactions->getTransactionsCountByType(TransactionType::INCOME));
     }
     public function testGetTransactionCountByTypeExpense()
     {
@@ -103,8 +103,8 @@ class DatabaseTransactionRepositoryTest extends TestCase
             ->method('fetchColumn')
             ->willReturn(5);
 
-        $repository = $this->createRepositoryWithMock($stmt);
-        $this->assertSame(5, $repository->getTransactionsCountByType(TransactionType::EXPENSE));
+        $repositoryTransactions = $this->createRepositoryWithMock($stmt);
+        $this->assertSame(5, $repositoryTransactions->getTransactionsCountByType(TransactionType::EXPENSE));
     }
 
     public function testGetTransactionsByCategory()
@@ -128,8 +128,8 @@ class DatabaseTransactionRepositoryTest extends TestCase
                 'amount'   => 500,
                 'category' => 'food',]]);
 
-        $repository = $this->createRepositoryWithMock($stmt);
-        $transactions = $repository->getTransactionsByCategory("food");
+        $repositoryTransactions = $this->createRepositoryWithMock($stmt);
+        $transactions = $repositoryTransactions->getTransactionsByCategory("food");
         $this->assertSame("food", $transactions[0]->getCategory());
         $this->assertSame("food", $transactions[1]->getCategory());
         $this->assertCount(2, $transactions);
@@ -151,8 +151,8 @@ class DatabaseTransactionRepositoryTest extends TestCase
             ->with()
             ->willReturn([]);
 
-        $repository = $this->createRepositoryWithMock($stmt);
-        $this->assertSame([], $repository->getTransactionsByCategory("food"));
+        $repositoryTransactions = $this->createRepositoryWithMock($stmt);
+        $this->assertSame([], $repositoryTransactions->getTransactionsByCategory("food"));
     }
 
     public function testGetLatestTransaction()
@@ -182,8 +182,8 @@ class DatabaseTransactionRepositoryTest extends TestCase
             ->method('getConnection')
             ->willReturn($pdo);
 
-        $repository = new DatabaseTransactionRepository($database);
-        $transactions = $repository->getLatestTransactions(2);
+        $repositoryTransactions = new DatabaseTransactionRepository($database);
+        $transactions = $repositoryTransactions->getLatestTransactions(2);
         $this->assertCount(2, $transactions);
     }
 
@@ -194,11 +194,11 @@ class DatabaseTransactionRepositoryTest extends TestCase
         ->expects($this->never())
         ->method('getConnection');
 
-        $repository = new DatabaseTransactionRepository($database);
+        $repositoryTransactions = new DatabaseTransactionRepository($database);
 
         $this->expectException(InvalidArgumentException::class);
 
-        $repository->getLatestTransactions(0);
+        $repositoryTransactions->getLatestTransactions(0);
     }
 }
 

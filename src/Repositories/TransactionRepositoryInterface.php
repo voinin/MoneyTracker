@@ -7,7 +7,7 @@ use MoneyTracker\Transaction;
 
 interface TransactionRepositoryInterface
 {
-    public function save(Transaction $transaction): int;
+    public function save(Transaction $transaction, int $account_id): int;
     public function getTransactionsCount():int;
     public function getTransactions():array;
     public function getTransactionsByType(TransactionType $type):array;

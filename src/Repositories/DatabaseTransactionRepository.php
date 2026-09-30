@@ -13,16 +13,17 @@ class DatabaseTransactionRepository implements TransactionRepositoryInterface
     public function __construct(private Database $database) {}
 
     #[\Override]
-    public function save(Transaction $transaction): int
+    public function save(Transaction $transaction, int $account_id): int
     {
-        $sql = 'INSERT INTO transactions (type, amount, category)
-        VALUES (:type, :amount, :category)';
+        $sql = 'INSERT INTO transactions (type, amount, category, account_id)
+        VALUES (:type, :amount, :category, :account_id)';
 
         $stmt = $this->database->getConnection()->prepare($sql);
         $stmt->execute([
             ':type' => $transaction->getType()->value,
             ':amount' => $transaction->getAmount(),
-            ':category' => $transaction->getCategory()
+            ':category' => $transaction->getCategory(),
+            ':account_id' => $account_id
         ]);
 
         return (int) $this->database->getConnection()->lastInsertId();
@@ -64,7 +65,7 @@ class DatabaseTransactionRepository implements TransactionRepositoryInterface
 
     private function createTransactionFromRow(array $row):Transaction
     {
-        return new Transaction(TransactionType::from($row['type']), (float) $row['amount'], $row['category']);
+        return new Transaction(TransactionType::from($row['type']), (float) $row['amount'], $row['category'], $row['id']);
     }
     
     private function getTransactionById(int $id): ?Transaction
