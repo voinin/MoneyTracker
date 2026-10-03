@@ -27,13 +27,14 @@ class TransactionProcessorTest extends TestCase
         $repositoryTransactions
             ->expects($this->once())
             ->method('save')
-            ->with($transaction);
+            ->with($transaction)
+            ->willReturn(1);
         $repisitoryAccounts
             ->expects($this->once())
             ->method('updateAccountBalance')
             ->with($account->getId(), $newBalance);
         $process = new TransactionProcessor($repositoryTransactions, $repisitoryAccounts, $database);
-        $this->assertTrue($process->processTransaction($transaction, $account));
+        $this->assertSame(1, $process->processTransaction($transaction, $account));
         $this->assertSame(1500.0, $account->getBalance());
     }
 

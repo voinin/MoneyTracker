@@ -1,5 +1,5 @@
 <?php
-namespace MoneyTracker\Tests;
+namespace MoneyTracker\Tests\Integration;
 
 use MoneyTracker\Repositories\TransactionRepository;
 use MoneyTracker\Repositories\TransactionRepositoryInterface;
